@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow — Modern Task & Schedule Manager</title>
+  <meta name="description" content="A sleek, modern to-do and task management web application to organize lists, track schedules, and boost productivity.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="app-layout">
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <span class="logo-text">Task<span>Flow</span></span>
+        </div>
+        <button class="btn-icon mobile-only" id="closeSidebarBtn" aria-label="Close Sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Quick Add Task Button -->
+      <div class="sidebar-action">
+        <button class="btn btn-primary btn-block" id="sidebarNewTaskBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>New Task</span>
+          <span class="kbd-shortcut">Ctrl+N</span>
+        </button>
+      </div>
+
+      <!-- Smart Views -->
+      <div class="nav-section">
+        <div class="nav-section-title">Views</div>
+        <ul class="nav-list" id="smartNavList">
+          <li class="nav-item active" data-view="all">
+            <button class="nav-btn">
+              <span class="nav-icon nav-icon-all">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              </span>
+              <span class="nav-label">All Tasks</span>
+              <span class="nav-badge" id="badgeAll">0</span>
+            </button>
+          </li>
+          <li class="nav-item" data-view="today">
+            <button class="nav-btn">
+              <span class="nav-icon nav-icon-today">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </span>
+              <span class="nav-label">Today</span>
+              <span class="nav-badge" id="badgeToday">0</span>
+            </button>
+          </li>
+          <li class="nav-item" data-view="upcoming">
+            <button class="nav-btn">
+              <span class="nav-icon nav-icon-upcoming">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </span>
+              <span class="nav-label">Upcoming</span>
+              <span class="nav-badge" id="badgeUpcoming">0</span>
+            </button>
+          </li>
+          <li class="nav-item" data-view="starred">
+            <button class="nav-btn">
+              <span class="nav-icon nav-icon-starred">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </span>
+              <span class="nav-label">Important</span>
+              <span class="nav-badge" id="badgeStarred">0</span>
+            </button>
+          </li>
+          <li class="nav-item" data-view="completed">
+            <button class="nav-btn">
+              <span class="nav-icon nav-icon-completed">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              </span>
+              <span class="nav-label">Completed</span>
+              <span class="nav-badge" id="badgeCompleted">0</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Custom Lists Section -->
+      <div class="nav-section">
+        <div class="nav-section-title list-header">
+          <span>Lists / Projects</span>
+          <button class="btn-icon-sm" id="newListBtn" title="Create New List" aria-label="Create New List">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+        <ul class="nav-list" id="customListsNav">
+          <!-- Dynamic Custom Lists inserted here -->
+        </ul>
+      </div>
+
+      <!-- Sidebar Footer Stats & Theme -->
+      <div class="sidebar-footer">
+        <div class="progress-container">
+          <div class="progress-labels">
+            <span>Tasks Done</span>
+            <span id="sidebarProgressText">0/0 (0%)</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="sidebarProgressBar" style="width: 0%;"></div>
+          </div>
+        </div>
+        <div class="sidebar-footer-controls">
+          <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Dark/Light Mode">
+            <div class="theme-toggle-icons">
+              <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </div>
+            <span class="theme-label" id="themeLabel">Dark Mode</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="btn-icon mobile-only" id="mobileMenuBtn" aria-label="Toggle Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <div class="search-box">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" placeholder="Search tasks, descriptions, or lists..." autocomplete="off">
+            <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear Search" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-secondary btn-sm" id="clearCompletedBtn" title="Clear all finished tasks">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Clear Completed</span>
+          </button>
+          <button class="btn btn-primary" id="headerNewTaskBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add Task</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Title & Filter Bar -->
+      <section class="view-header">
+        <div class="view-title-group">
+          <div class="view-icon-badge" id="currentViewIcon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </div>
+          <div>
+            <div class="view-heading-row">
+              <h1 class="view-title" id="currentViewTitle">All Tasks</h1>
+              <button class="btn-icon-sm list-edit-btn" id="editCurrentListBtn" style="display: none;" title="Edit List">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              </button>
+              <button class="btn-icon-sm list-delete-btn" id="deleteCurrentListBtn" style="display: none;" title="Delete List">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+            <p class="view-subtitle" id="currentViewSubtitle">Manage and organize all your pending and completed activities</p>
+          </div>
+        </div>
+
+        <!-- Filter & Sorting Controls -->
+        <div class="controls-toolbar">
+          <div class="filter-group">
+            <label for="priorityFilter">Priority:</label>
+            <select id="priorityFilter" class="custom-select">
+              <option value="all">All Priorities</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="sortBy">Sort by:</label>
+            <select id="sortBy" class="custom-select">
+              <option value="dueDate">Due Date & Time</option>
+              <option value="priority">Priority (High to Low)</option>
+              <option value="createdAt">Date Created</option>
+              <option value="title">Alphabetical</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Add Task Bar -->
+      <section class="quick-add-section">
+        <form class="quick-add-form" id="quickAddForm">
+          <div class="quick-add-input-wrapper">
+            <span class="quick-add-indicator">+</span>
+            <input type="text" id="quickAddInput" placeholder="Quickly add a task... (press Enter to save)" autocomplete="off" required>
+          </div>
+
+          <div class="quick-add-meta">
+            <!-- Due Date & Time -->
+            <div class="quick-add-field">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <input type="date" id="quickAddDate" title="Due Date">
+              <input type="time" id="quickAddTime" title="Due Time">
+            </div>
+
+            <!-- Priority Selector -->
+            <div class="quick-add-field">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <select id="quickAddPriority" class="meta-select">
+                <option value="medium">Medium</option>
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+
+            <!-- List Selector -->
+            <div class="quick-add-field">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <select id="quickAddList" class="meta-select">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm">Add</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Task Stats Bar -->
+      <section class="task-stats-bar">
+        <div class="stats-item">
+          <span class="stats-number" id="statsTotal">0</span>
+          <span class="stats-label">Total</span>
+        </div>
+        <div class="stats-divider"></div>
+        <div class="stats-item">
+          <span class="stats-number text-pending" id="statsPending">0</span>
+          <span class="stats-label">Pending</span>
+        </div>
+        <div class="stats-divider"></div>
+        <div class="stats-item">
+          <span class="stats-number text-overdue" id="statsOverdue">0</span>
+          <span class="stats-label">Overdue</span>
+        </div>
+        <div class="stats-divider"></div>
+        <div class="stats-item">
+          <span class="stats-number text-success" id="statsCompleted">0</span>
+          <span class="stats-label">Completed</span>
+        </div>
+      </section>
+
+      <!-- Task List Container -->
+      <section class="tasks-container" id="tasksContainer">
+        <!-- Tasks rendered via JavaScript -->
+      </section>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-illustration">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+        </div>
+        <h3 class="empty-title">All caught up!</h3>
+        <p class="empty-desc">No tasks found matching your active filters. Add a task above or pick another list.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Task Detail / Edit Modal -->
+  <div class="modal-backdrop" id="taskModalBackdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="taskModalTitle">Edit Task</h2>
+        <button class="btn-icon" id="closeTaskModalBtn" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <form id="taskModalForm" class="modal-form">
+        <input type="hidden" id="modalTaskId">
+
+        <div class="form-group">
+          <label for="modalTaskTitle">Task Title <span class="required">*</span></label>
+          <input type="text" id="modalTaskTitle" required placeholder="What needs to be done?">
+        </div>
+
+        <div class="form-group">
+          <label for="modalTaskDesc">Notes / Details</label>
+          <textarea id="modalTaskDesc" rows="3" placeholder="Add descriptions, sub-notes, links or context..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="modalTaskList">List / Category</label>
+            <select id="modalTaskList" class="custom-select">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalTaskPriority">Priority</label>
+            <select id="modalTaskPriority" class="custom-select">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="modalTaskDate">Due Date</label>
+            <input type="date" id="modalTaskDate" class="custom-input">
+          </div>
+          <div class="form-group">
+            <label for="modalTaskTime">Due Time</label>
+            <input type="time" id="modalTaskTime" class="custom-input">
+          </div>
+        </div>
+
+        <div class="form-checkbox-row">
+          <label class="custom-checkbox-label">
+            <input type="checkbox" id="modalTaskStarred">
+            <span class="checkbox-custom"></span>
+            <span>Mark as Important (Starred)</span>
+          </label>
+          <label class="custom-checkbox-label">
+            <input type="checkbox" id="modalTaskCompleted">
+            <span class="checkbox-custom"></span>
+            <span>Mark as Completed</span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelTaskModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveTaskModalBtn">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom List Modal (Create / Edit) -->
+  <div class="modal-backdrop" id="listModalBackdrop">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="listModalTitle">Create New List</h2>
+        <button class="btn-icon" id="closeListModalBtn" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <form id="listModalForm" class="modal-form">
+        <input type="hidden" id="modalListId">
+
+        <div class="form-group">
+          <label for="modalListName">List Name <span class="required">*</span></label>
+          <input type="text" id="modalListName" required placeholder="e.g. Work Projects, Groceries, Fitness">
+        </div>
+
+        <div class="form-group">
+          <label>Accent Color</label>
+          <div class="color-picker-palette" id="colorPickerPalette">
+            <!-- Color swatches rendered in JS -->
+          </div>
+          <input type="hidden" id="modalListColor" value="#6366f1">
+        </div>
+
+        <div class="form-group">
+          <label>List Icon</label>
+          <div class="icon-picker-palette" id="iconPickerPalette">
+            <!-- Icon choices rendered in JS -->
+          </div>
+          <input type="hidden" id="modalListIcon" value="folder">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelListModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveListModalBtn">Save List</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
